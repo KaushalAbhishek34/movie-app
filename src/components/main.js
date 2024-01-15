@@ -49,14 +49,14 @@ const MovieApp = () => {
       <Button variant="contained" color={showFavorites ? "primary" : "error"} onClick={handleShowFavorites} sx={{ marginLeft: 2 }}>
         {showFavorites ? 'All Movies' : ' Favorites'}
       </Button>
-      <Grid container spacing={6}>
+      <Grid container spacing={1}>
         {showFavorites
           ? favorites.map((movie) => (
-            <Grid item key={movie.id} xs={12} sm={6} md={4}>
-              <Card sx={{ height: '100%' }}>
+            <Grid item key={movie.id} s={12} md={6} lg={4}>
+              <Card sx={{ height: "100%"  }}>
                 <CardMedia
                   component="img"
-                  height="200"
+                  height=""
                   image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                   alt={movie.title}
                 />
@@ -79,7 +79,7 @@ const MovieApp = () => {
                     <IconButton
                       onClick={() => handleFavoriteToggle(movie)}
                     >
-                      <FavoriteIcon sx={{ fontSize: 'large', color: 'red' }} />
+                      <FavoriteIcon sx={{ fontSize: 'xlarge', color: 'red' }} />
                     </IconButton>
                   </Tooltip>
                 </CardContent>
@@ -88,7 +88,7 @@ const MovieApp = () => {
           ))
           : filteredMovies.map((movie) => (
             <Grid item key={movie.id} s={12} md={6} lg={4}>
-              <Card sx={{ height: "100%" }}>
+              <Card sx={{ height: "100%"  }}>
                 <CardMedia
                   component="img"
                   height= ""
