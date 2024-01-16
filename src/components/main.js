@@ -23,18 +23,17 @@ const MovieApp = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showFavorites, setShowFavorites] = useState(false);
-
-  // Create a useRef for the search input
+  const [movieList, setMovieList] = useState("now_playing");
   const searchInputRef = useRef(null);
 
   useEffect(() => {
-    fetchMovies(currentPage, searchTerm);
-  }, [currentPage, searchTerm]);
+    fetchMovies(currentPage, searchTerm,movieList);
+  }, [currentPage, searchTerm,movieList]);
 
-  const fetchMovies = (page, term) => {
+  const fetchMovies = (page, term,list) => {
     const apiUrl = term
       ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${term}&page=${page}`
-      : `https://api.themoviedb.org/3/movie/popular?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${page}`;
+      : `https://api.themoviedb.org/3/movie/${list}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${page}`;
 
     fetch(apiUrl)
       .then((response) => response.json())
@@ -95,6 +94,33 @@ const MovieApp = () => {
       >
         {showFavorites ? 'All Movies' : ' Favorites'}
       </Button>
+      <div style={{display:'flex',justifyContent:"center"}}>
+      <Button
+         variant="contained"
+         color='warning'
+         sx={{ margin: 2 }}
+         onClick={() => setMovieList("popular")}
+       >
+        popular
+      </Button>
+      <Button
+        variant="contained"
+        sx={{ margin: 2 }}
+        color='warning'
+        onClick={() => setMovieList("top_rated")}
+      >
+       top rated
+      </Button>
+       <Button
+       variant="contained"
+       sx={{ margin: 2 }}
+       color='warning'
+      onClick={() => setMovieList("upcoming")}
+      >
+        upcoming
+      </Button>
+
+      </div>
       <Grid container spacing={3}>
         {showFavorites
           ? favorites.map((movie) => (
