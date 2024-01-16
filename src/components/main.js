@@ -1,7 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Grid, Card, CardMedia, CardContent, Typography, Button, TextField, Tooltip, IconButton } from '@mui/material';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  Container,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Button,
+  TextField,
+  Tooltip,
+  IconButton
+} from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import SearchIcon from '@mui/icons-material/Search';
 import './component.css';
 
 const MovieApp = () => {
@@ -12,12 +24,19 @@ const MovieApp = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showFavorites, setShowFavorites] = useState(false);
 
-  useEffect(() => {
-    fetchMovies(currentPage);
-  }, [currentPage]);
+  // Create a useRef for the search input
+  const searchInputRef = useRef(null);
 
-  const fetchMovies = (page) => {
-    fetch(`https://api.themoviedb.org/3/movie/popular?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${page}`)
+  useEffect(() => {
+    fetchMovies(currentPage, searchTerm);
+  }, [currentPage, searchTerm]);
+
+  const fetchMovies = (page, term) => {
+    const apiUrl = term
+      ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${term}&page=${page}`
+      : `https://api.themoviedb.org/3/movie/popular?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${page}`;
+
+    fetch(apiUrl)
       .then((response) => response.json())
       .then((data) => {
         setMovies(data.results);
@@ -25,10 +44,6 @@ const MovieApp = () => {
       })
       .catch((error) => console.error('Error fetching data:', error));
   };
-
-  const filteredMovies = movies.filter(movie =>
-    movie.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleFavoriteToggle = (movie) => {
     const isFavorite = favorites.some(favorite => favorite.id === movie.id);
@@ -40,6 +55,7 @@ const MovieApp = () => {
   };
 
   const isFavorite = (movie) => favorites.some(favorite => favorite.id === movie.id);
+
   const handleShowFavorites = () => {
     setShowFavorites(!showFavorites);
   };
@@ -50,22 +66,36 @@ const MovieApp = () => {
     }
   };
 
+  const handleSearch = () => {
+    setSearchTerm(searchInputRef.current.value);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
       <TextField
+        inputRef={searchInputRef}
         id="outlined-basic"
         label="MOVIE"
         variant="outlined"
         size="small"
         color="success"
         sx={{ width: '60%', paddingBottom: 3 }}
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <Button variant="contained" color={showFavorites ? "primary" : "error"} onClick={handleShowFavorites} sx={{ marginLeft: 2 }}>
+      <IconButton
+        sx={{ marginLeft: 1 }}
+        onClick={handleSearch}
+      >
+        <SearchIcon />
+      </IconButton>
+      <Button
+        variant="contained"
+        color={showFavorites ? "primary" : "error"}
+        onClick={handleShowFavorites}
+        sx={{ marginLeft: 2 }}
+      >
         {showFavorites ? 'All Movies' : ' Favorites'}
       </Button>
-      <Grid container spacing={6}>
+      <Grid container spacing={3}>
         {showFavorites
           ? favorites.map((movie) => (
             <Grid item key={movie.id} xs={12} sm={6} md={4}>
@@ -102,8 +132,8 @@ const MovieApp = () => {
               </Card>
             </Grid>
           ))
-          : filteredMovies.map((movie) => (
-            <Grid item key={movie.id} s={12} md={6} lg={4}>
+          : movies.map((movie) => (
+            <Grid item key={movie.id} xs={12} sm={6} md={4}>
               <Card sx={{ height: "100%"  }}>
                 <CardMedia
                   component="img"
@@ -143,15 +173,19 @@ const MovieApp = () => {
           ))}
       </Grid>
       <div>
-        <Button 
-        variant="contained"
-        onClick={() => handlePagination(currentPage - 1)} disabled={currentPage === 1}>
+        <Button
+          variant="contained"
+          onClick={() => handlePagination(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
           Previous Page
         </Button>
         <span className='paging'>{`Page ${currentPage} of ${totalPages}`}</span>
-        <Button 
-        variant="contained"
-        onClick={() => handlePagination(currentPage + 1)} disabled={currentPage === totalPages}>
+        <Button
+          variant="contained"
+          onClick={() => handlePagination(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
           Next Page
         </Button>
       </div>
