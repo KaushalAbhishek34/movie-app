@@ -57,6 +57,7 @@ const MovieApp = () => {
         label="MOVIE"
         variant="outlined"
         size="small"
+        color="success"
         sx={{ width: '60%', paddingBottom: 3 }}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
@@ -142,11 +143,15 @@ const MovieApp = () => {
           ))}
       </Grid>
       <div>
-        <Button onClick={() => handlePagination(currentPage - 1)} disabled={currentPage === 1}>
+        <Button 
+        variant="contained"
+        onClick={() => handlePagination(currentPage - 1)} disabled={currentPage === 1}>
           Previous Page
         </Button>
-        <span>{`Page ${currentPage} of ${totalPages}`}</span>
-        <Button onClick={() => handlePagination(currentPage + 1)} disabled={currentPage === totalPages}>
+        <span className='paging'>{`Page ${currentPage} of ${totalPages}`}</span>
+        <Button 
+        variant="contained"
+        onClick={() => handlePagination(currentPage + 1)} disabled={currentPage === totalPages}>
           Next Page
         </Button>
       </div>
