@@ -41,6 +41,7 @@ const MovieApp = () => {
   }, [searchTerm, currentPage, movieList]);
 
   useEffect(() => {
+    console.log("Component rendered!");
     fetchMovies();
   }, [fetchMovies, searchTerm]);
 
@@ -66,6 +67,7 @@ const MovieApp = () => {
   };
 
   const handleSearch = useCallback(() => {
+    console.log("Searching...");
     setSearchTerm(searchInputRef.current.value);
   }, [searchInputRef, setSearchTerm]);
 
