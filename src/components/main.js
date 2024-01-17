@@ -41,7 +41,6 @@ const MovieApp = () => {
   }, [searchTerm, currentPage, movieList]);
 
   useEffect(() => {
-    console.log("Component rendered!");
     fetchMovies();
   }, [fetchMovies, searchTerm]);
 
@@ -67,9 +66,22 @@ const MovieApp = () => {
   };
 
   const handleSearch = useCallback(() => {
-    console.log("Searching...");
     setSearchTerm(searchInputRef.current.value);
+    setCurrentPage(1);
   }, [searchInputRef, setSearchTerm]);
+  
+  const changeToPopular = () =>{
+    setMovieList("popular");
+    setCurrentPage(1);
+  }
+  const changeToTopRated = () =>{
+    setMovieList("top_rated");
+    setCurrentPage(1);
+  }
+  const changeToUpcoming = () => {
+    setMovieList("upcoming");
+    setCurrentPage(1);
+  }
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
@@ -101,7 +113,7 @@ const MovieApp = () => {
           variant="contained"
           color='warning'
           sx={{ margin: 2 }}
-          onClick={() => setMovieList("popular")}
+          onClick={changeToPopular}
         >
           popular
         </Button>
@@ -109,7 +121,7 @@ const MovieApp = () => {
           variant="contained"
           sx={{ margin: 2 }}
           color='warning'
-          onClick={() => setMovieList("top_rated")}
+          onClick={changeToTopRated}
         >
           top rated
         </Button>
@@ -117,7 +129,7 @@ const MovieApp = () => {
           variant="contained"
           sx={{ margin: 2 }}
           color='warning'
-          onClick={() => setMovieList("upcoming")}
+          onClick={changeToUpcoming}
         >
           upcoming
         </Button>
