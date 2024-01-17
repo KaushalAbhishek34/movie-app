@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Container,
   Grid,
@@ -26,14 +26,10 @@ const MovieApp = () => {
   const [movieList, setMovieList] = useState("now_playing");
   const searchInputRef = useRef(null);
 
-  useEffect(() => {
-    fetchMovies(currentPage, searchTerm,movieList);
-  }, [currentPage, searchTerm,movieList]);
-
-  const fetchMovies = (page, term,list) => {
-    const apiUrl = term
-      ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${term}&page=${page}`
-      : `https://api.themoviedb.org/3/movie/${list}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${page}`;
+  const fetchMovies = useCallback(() => {
+    const apiUrl = searchTerm
+      ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`
+      : `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
 
     fetch(apiUrl)
       .then((response) => response.json())
@@ -42,7 +38,11 @@ const MovieApp = () => {
         setTotalPages(data.total_pages);
       })
       .catch((error) => console.error('Error fetching data:', error));
-  };
+  }, [searchTerm, currentPage, movieList]);
+
+  useEffect(() => {
+    fetchMovies();
+  }, [fetchMovies, searchTerm]);
 
   const handleFavoriteToggle = (movie) => {
     const isFavorite = favorites.some(favorite => favorite.id === movie.id);
@@ -65,9 +65,9 @@ const MovieApp = () => {
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     setSearchTerm(searchInputRef.current.value);
-  };
+  }, [searchInputRef, setSearchTerm]);
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
@@ -94,32 +94,31 @@ const MovieApp = () => {
       >
         {showFavorites ? 'All Movies' : ' Favorites'}
       </Button>
-      <div style={{display:'flex',justifyContent:"center"}}>
-      <Button
-         variant="contained"
-         color='warning'
-         sx={{ margin: 2 }}
-         onClick={() => setMovieList("popular")}
-       >
-        popular
-      </Button>
-      <Button
-        variant="contained"
-        sx={{ margin: 2 }}
-        color='warning'
-        onClick={() => setMovieList("top_rated")}
-      >
-       top rated
-      </Button>
-       <Button
-       variant="contained"
-       sx={{ margin: 2 }}
-       color='warning'
-      onClick={() => setMovieList("upcoming")}
-      >
-        upcoming
-      </Button>
-
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <Button
+          variant="contained"
+          color='warning'
+          sx={{ margin: 2 }}
+          onClick={() => setMovieList("popular")}
+        >
+          popular
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ margin: 2 }}
+          color='warning'
+          onClick={() => setMovieList("top_rated")}
+        >
+          top rated
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ margin: 2 }}
+          color='warning'
+          onClick={() => setMovieList("upcoming")}
+        >
+          upcoming
+        </Button>
       </div>
       <Grid container spacing={3}>
         {showFavorites
