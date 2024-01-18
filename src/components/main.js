@@ -25,6 +25,7 @@ const MovieApp = () => {
   const [showFavorites, setShowFavorites] = useState(false);
   const [movieList, setMovieList] = useState("now_playing");
   const searchInputRef = useRef(null);
+  const [fetchedPages, setFetchedPages] = useState({});
 
   const fetchMovies = useCallback(() => {
     const apiUrl = searchTerm
@@ -36,13 +37,23 @@ const MovieApp = () => {
       .then((data) => {
         setMovies(data.results);
         setTotalPages(data.total_pages);
+        setFetchedPages((prev) => ({ ...prev, [currentPage]: data }));
       })
       .catch((error) => console.error('Error fetching data:', error));
   }, [searchTerm, currentPage, movieList]);
 
   useEffect(() => {
-    fetchMovies();
-  }, [fetchMovies, searchTerm]);
+    console.log("Fetching movies...");
+    const isPageFetched = fetchedPages[currentPage];
+    if (!isPageFetched) {
+      
+      fetchMovies();
+    } else {
+
+      setMovies(fetchedPages[currentPage].results);
+      setTotalPages(fetchedPages[currentPage].total_pages);
+    }
+  }, [fetchMovies, currentPage, searchTerm, movieList, fetchedPages]);
 
   const handleFavoriteToggle = (movie) => {
     const isFavorite = favorites.some(favorite => favorite.id === movie.id);
@@ -68,7 +79,7 @@ const MovieApp = () => {
   const handleSearch = useCallback(() => {
     setSearchTerm(searchInputRef.current.value);
     setCurrentPage(1);
-  }, [searchInputRef, setSearchTerm]);
+  }, [ setSearchTerm]);
   
   const changeToPopular = () =>{
     setMovieList("popular");
