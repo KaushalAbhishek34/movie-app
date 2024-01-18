@@ -43,10 +43,9 @@ const MovieApp = () => {
   }, [searchTerm, currentPage, movieList]);
 
   useEffect(() => {
-    console.log("Fetching movies...");
     const isPageFetched = fetchedPages[currentPage];
     if (!isPageFetched) {
-      
+      console.log("Fetching movies...");
       fetchMovies();
     } else {
 
