@@ -25,34 +25,25 @@ const MovieApp = () => {
   const [showFavorites, setShowFavorites] = useState(false);
   const [movieList, setMovieList] = useState("now_playing");
   const searchInputRef = useRef(null);
-  const [fetchedPages, setFetchedPages] = useState({});
 
   const fetchMovies = useCallback(() => {
     const apiUrl = searchTerm
       ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`
       : `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
-
+      
     fetch(apiUrl)
       .then((response) => response.json())
       .then((data) => {
         setMovies(data.results);
         setTotalPages(data.total_pages);
-        setFetchedPages((prev) => ({ ...prev, [currentPage]: data }));
       })
       .catch((error) => console.error('Error fetching data:', error));
   }, [searchTerm, currentPage, movieList]);
 
   useEffect(() => {
-    const isPageFetched = fetchedPages[currentPage];
-    if (!isPageFetched) {
-      console.log("Fetching movies...");
-      fetchMovies();
-    } else {
-
-      setMovies(fetchedPages[currentPage].results);
-      setTotalPages(fetchedPages[currentPage].total_pages);
-    }
-  }, [fetchMovies, currentPage, searchTerm, movieList, fetchedPages]);
+    console.log("Fetching movies...");
+    fetchMovies();
+  }, [fetchMovies]);
 
   const handleFavoriteToggle = (movie) => {
     const isFavorite = favorites.some(favorite => favorite.id === movie.id);
