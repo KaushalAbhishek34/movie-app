@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
   Container,
   Grid,
@@ -26,24 +26,40 @@ const MovieApp = () => {
   const [movieList, setMovieList] = useState("now_playing");
   const searchInputRef = useRef(null);
 
-  const fetchMovies = useCallback(() => {
-    const apiUrl = searchTerm
-      ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`
-      : `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
-      
-    fetch(apiUrl)
-      .then((response) => response.json())
-      .then((data) => {
+  const cache = useRef({});
+
+  const fetchMovies = useCallback(async () => {
+    const cachedData = cache.current[movieList] && cache.current[movieList][currentPage];
+    if (cachedData) {
+      setMovies(cachedData.results);
+      setTotalPages(cachedData.total_pages);
+    } else {
+      const apiUrl = searchTerm
+        ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`
+        : `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
+
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
         setMovies(data.results);
         setTotalPages(data.total_pages);
-      })
-      .catch((error) => console.error('Error fetching data:', error));
+        cache.current[movieList] = {
+          ...cache.current[movieList],
+          [currentPage]: data,
+        };
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
   }, [searchTerm, currentPage, movieList]);
 
-  useEffect(() => {
+  const memoizedFetchMovies = useMemo(() => fetchMovies, [fetchMovies]);
+
+     useEffect(() => {
     console.log("Fetching movies...");
-    fetchMovies();
-  }, [fetchMovies]);
+    memoizedFetchMovies();
+  }, [memoizedFetchMovies]);
 
   const handleFavoriteToggle = (movie) => {
     const isFavorite = favorites.some(favorite => favorite.id === movie.id);
@@ -66,10 +82,10 @@ const MovieApp = () => {
     }
   };
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = () => {
     setSearchTerm(searchInputRef.current.value);
     setCurrentPage(1);
-  }, [ setSearchTerm]);
+  };
   
   const changeToPopular = () =>{
     setMovieList("popular");

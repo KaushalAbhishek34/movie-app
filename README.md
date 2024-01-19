@@ -1,70 +1,236 @@
-# Getting Started with Create React App
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  Container,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Button,
+  TextField,
+  Tooltip,
+  IconButton
+} from '@mui/material';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import SearchIcon from '@mui/icons-material/Search';
+import './component.css';
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+const MovieApp = () => {
+  const [movies, setMovies] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [favorites, setFavorites] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [movieList, setMovieList] = useState("now_playing");
+  const searchInputRef = useRef(null);
 
-## Available Scripts
+  const fetchMovies = () => {
+    const apiUrl = searchTerm
+      ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`
+      : `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
+      
+    fetch(apiUrl)
+      .then((response) => response.json())
+      .then((data) => {
+        setMovies(data.results);
+        setTotalPages(data.total_pages);
+      })
+      .catch((error) => console.error('Error fetching data:', error));
+  };
 
-In the project directory, you can run:
+  useEffect(() => {
+    console.log("Fetching movies...");
+     fetchMovies(); 
+  }, [fetchMovies]);
 
-### `npm start`
+  const handleFavoriteToggle = (movie) => {
+    const isFavorite = favorites.some(favorite => favorite.id === movie.id);
+    if (isFavorite) {
+      setFavorites(favorites.filter(favorite => favorite.id !== movie.id));
+    } else {
+      setFavorites([...favorites, movie]);
+    }
+  };
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+  const isFavorite = (movie) => favorites.some(favorite => favorite.id === movie.id);
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+  const handleShowFavorites = () => {
+    setShowFavorites(!showFavorites);
+  };
 
-### `npm test`
+  const handlePagination = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  const handleSearch = () => {
+    setSearchTerm(searchInputRef.current.value);
+    setCurrentPage(1);
+  };
+  
+  const changeToPopular = () =>{
+    setMovieList("popular");
+    setCurrentPage(1);
+  }
+  const changeToTopRated = () =>{
+    setMovieList("top_rated");
+    setCurrentPage(1);
+  }
+  const changeToUpcoming = () => {
+    setMovieList("upcoming");
+    setCurrentPage(1);
+  }
 
-### `npm run build`
+  return (
+    <Container maxWidth="lg" sx={{ marginTop: 4 }}>
+      <TextField
+        inputRef={searchInputRef}
+        id="outlined-basic"
+        label="MOVIE"
+        variant="outlined"
+        size="small"
+        color="success"
+        sx={{ width: '60%', paddingBottom: 3 }}
+      />
+      <IconButton
+        sx={{ marginLeft: 1 }}
+        onClick={handleSearch}
+      >
+        <SearchIcon />
+      </IconButton>
+      <Button
+        variant="contained"
+        color={showFavorites ? "primary" : "error"}
+        onClick={handleShowFavorites}
+        sx={{ marginLeft: 2 }}
+      >
+        {showFavorites ? 'All Movies' : ' Favorites'}
+      </Button>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <Button
+          variant="contained"
+          color='warning'
+          sx={{ margin: 2 }}
+          onClick={changeToPopular}
+        >
+          popular
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ margin: 2 }}
+          color='warning'
+          onClick={changeToTopRated}
+        >
+          top rated
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ margin: 2 }}
+          color='warning'
+          onClick={changeToUpcoming}
+        >
+          upcoming
+        </Button>
+      </div>
+      <Grid container spacing={3}>
+        {showFavorites
+          ? favorites.map((movie) => (
+            <Grid item key={movie.id} xs={12} sm={6} md={4}>
+              <Card sx={{ height: "100%"  }}>
+                <CardMedia
+                  component="img"
+                  height=""
+                  image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                />
+                <CardContent>
+                  <Typography variant="h6" component="div">
+                    {movie.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Rating: {movie.vote_average}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => window.open(`https://www.themoviedb.org/movie/${movie.id}`)}
+                    sx={{ marginRight: 2 }}
+                  >
+                    View on TMDB
+                  </Button>
+                  <Tooltip title="Remove from Favorites">
+                    <IconButton
+                      onClick={() => handleFavoriteToggle(movie)}
+                    >
+                      <FavoriteIcon sx={{ fontSize: 'xlarge', color: 'red' }} />
+                    </IconButton>
+                  </Tooltip>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+          : movies.map((movie) => (
+            <Grid item key={movie.id} xs={12} sm={6} md={4}>
+              <Card sx={{ height: "100%"  }}>
+                <CardMedia
+                  component="img"
+                  height= ""
+                  image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                />
+                <CardContent>
+                  <Typography variant="h6" component="div">
+                    {movie.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Rating: {movie.vote_average}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    color='info'
+                    onClick={() => window.open(`https://www.themoviedb.org/movie/${movie.id}`)}
+                    sx={{ marginRight: 2  }}
+                  >
+                    View on TMDB
+                  </Button>
+                  <Tooltip title={isFavorite(movie) ? "Remove from Favorites" : "Add to Favorites"}>
+                    <IconButton
+                      onClick={() => handleFavoriteToggle(movie)}
+                    >
+                      {isFavorite(movie) ? (
+                        <FavoriteIcon sx={{ fontSize: 'xlarge', color: 'red' }} />
+                      ) : (
+                        <FavoriteBorderIcon sx={{ fontSize: 'xlarge' }} />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+      </Grid>
+      <div>
+        <Button
+          variant="contained"
+          onClick={() => handlePagination(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous Page
+        </Button>
+        <span className='paging'>{`Page ${currentPage} of ${totalPages}`}</span>
+        <Button
+          variant="contained"
+          onClick={() => handlePagination(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next Page
+        </Button>
+      </div>
+    </Container>
+  );
+};
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+export default MovieApp;
