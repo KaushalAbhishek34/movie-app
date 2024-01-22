@@ -27,20 +27,20 @@ const MovieApp = () => {
 
   const searchInputRef = useRef(null);
 
-  // const searchMovies = useMemo(
-  //   () => async () => {
-  //     const apiUrl = `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`;
-  //     try {
-  //       let response = await fetch(apiUrl);
-  //       let data = await response.json();
-  //       setMovies(data.results);
-  //       setTotalPages(data.total_pages);
-  //     } catch (error) {
-  //       console.error('Error fetching data:', error);
-  //     }
-  //   },
-  //   [searchTerm, currentPage]
-  // );
+  const searchMovies = useMemo(
+    () => async () => {
+      const apiUrl = `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`;
+      try {
+        let response = await fetch(apiUrl);
+        let data = await response.json();
+        setMovies(data.results);
+        setTotalPages(data.total_pages);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    },
+    [searchTerm, currentPage]
+  );
 
   const fetchMovies = useMemo(
     () => async () => {
@@ -59,9 +59,9 @@ const MovieApp = () => {
 
   useEffect(() => {
     console.log('Fetching movies ...');
-   
-    fetchMovies();
-  }, [  fetchMovies]);
+    searchTerm ? searchMovies() : fetchMovies();
+  }, [searchMovies, fetchMovies]);
+
 
   
   const handleFavoriteToggle = (movie) => {
