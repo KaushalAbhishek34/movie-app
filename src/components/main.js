@@ -24,41 +24,46 @@ const MovieApp = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showFavorites, setShowFavorites] = useState(false);
   const [movieList, setMovieList] = useState("now_playing");
+
   const searchInputRef = useRef(null);
-  const [cachedData, setCachedData] = useState({});
 
-  const memoizedApiUrl = useMemo(() => {
-   
-    return searchTerm
-      ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`
-      : `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
-  }, [searchTerm, currentPage, movieList]);
+  // const searchMovies = useMemo(
+  //   () => async () => {
+  //     const apiUrl = `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`;
+  //     try {
+  //       let response = await fetch(apiUrl);
+  //       let data = await response.json();
+  //       setMovies(data.results);
+  //       setTotalPages(data.total_pages);
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     }
+  //   },
+  //   [searchTerm, currentPage]
+  // );
 
-  const fetchMovies = async () => {
-    try {
-      if (cachedData[memoizedApiUrl]) {
-        console.log('Fetching movies cache ...');
-        setMovies(cachedData[memoizedApiUrl].results);
-        setTotalPages(cachedData[memoizedApiUrl].total_pages);
-      } else {
-        console.log('Fetching movies ...');
-        let response = await fetch(memoizedApiUrl);
+  const fetchMovies = useMemo(
+    () => async () => {
+      const apiUrl = `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
+      try {
+        let response = await fetch(apiUrl);
         let data = await response.json();
-        setCachedData((prevData) => ({ ...prevData, [memoizedApiUrl]: data }));
         setMovies(data.results);
         setTotalPages(data.total_pages);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
+    },
+    [currentPage, movieList]
+  );
 
   useEffect(() => {
-    
+    console.log('Fetching movies ...');
+   
     fetchMovies();
-  }, [memoizedApiUrl]);
+  }, [  fetchMovies]);
 
+  
   const handleFavoriteToggle = (movie) => {
     const isFavorite = favorites.some(favorite => favorite.id === movie.id);
     if (isFavorite) {
