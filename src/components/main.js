@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   Container,
   Grid,
@@ -25,28 +25,40 @@ const MovieApp = () => {
   const [showFavorites, setShowFavorites] = useState(false);
   const [movieList, setMovieList] = useState("now_playing");
   const searchInputRef = useRef(null);
+  const [cachedData, setCachedData] = useState({});
 
-  const fetchMovies = async (searchTerm, currentPage, movieList) => {
-    const apiUrl = searchTerm
+  const memoizedApiUrl = useMemo(() => {
+   
+    return searchTerm
       ? `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`
       : `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
-  
+  }, [searchTerm, currentPage, movieList]);
+
+  const fetchMovies = async () => {
     try {
-      let response = await fetch(apiUrl);
-      let data = await response.json();
-      setMovies(data.results);
-      setTotalPages(data.total_pages);
+      if (cachedData[memoizedApiUrl]) {
+        console.log('Fetching movies cache ...');
+        setMovies(cachedData[memoizedApiUrl].results);
+        setTotalPages(cachedData[memoizedApiUrl].total_pages);
+      } else {
+        console.log('Fetching movies ...');
+        let response = await fetch(memoizedApiUrl);
+        let data = await response.json();
+        setCachedData((prevData) => ({ ...prevData, [memoizedApiUrl]: data }));
+        setMovies(data.results);
+        setTotalPages(data.total_pages);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
-  
-  useEffect(() => {
-    console.log('Fetching movies ...');
-    fetchMovies(searchTerm, currentPage, movieList);
-  }, [searchTerm, currentPage, movieList]);
 
-  
+
+  useEffect(() => {
+    
+    fetchMovies();
+  }, [memoizedApiUrl]);
+
   const handleFavoriteToggle = (movie) => {
     const isFavorite = favorites.some(favorite => favorite.id === movie.id);
     if (isFavorite) {
