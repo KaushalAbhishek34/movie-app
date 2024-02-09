@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Container,
   Grid,
@@ -16,95 +17,39 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import SearchIcon from '@mui/icons-material/Search';
 import './component.css';
 
-const MovieApp = () => {
-  const [movies, setMovies] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [favorites, setFavorites] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [movieList, setMovieList] = useState("now_playing");
+import { toggleFavorite, setShowFavorites, setCurrentPage, setSearchTerm,  changeToPopular, changeToTopRated, changeToUpcoming,setMoviesAndTotalPages, minusPage,plusPage } from './redux/movieSlice';
+  import { useFetchMoviesQuery } from './redux/movieApi';
 
+const MovieApp = () => {
+  const dispatch = useDispatch();
+  const favorites = useSelector(state => state.movie.favorites);
+  const showFavorites = useSelector(state => state.movie.showFavorites);
+  const currentPage = useSelector(state => state.movie.currentPage);
+  const searchTerm = useSelector(state => state.movie.searchTerm);
+  const movieList = useSelector(state => state.movie.movieList);
+  const {  data } = useFetchMoviesQuery({ searchTerm, currentPage,movieList });
+  const movies = useSelector(state => state.movie.movies)
+  const totalPages = useSelector(state => state.movie.totalPages)
   const searchInputRef = useRef(null);
 
-  const searchMovies = useMemo(
-    () => async () => {
-      const apiUrl = `https://api.themoviedb.org/3/search/movie?api_key=cd1fa48b9c76b58e20e48ca5597505d7&query=${searchTerm}&page=${currentPage}`;
-      try {
-        let response = await fetch(apiUrl);
-        let data = await response.json();
-        setMovies(data.results);
-        setTotalPages(data.total_pages);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    },
-    [searchTerm, currentPage]
-  );
-
-  const fetchMovies = useMemo(
-    () => async () => {
-      const apiUrl = `https://api.themoviedb.org/3/movie/${movieList}?api_key=cd1fa48b9c76b58e20e48ca5597505d7&page=${currentPage}`;
-      try {
-        let response = await fetch(apiUrl);
-        let data = await response.json();
-        setMovies(data.results);
-        setTotalPages(data.total_pages);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    },
-    [currentPage, movieList]
-  );
-
-  useEffect(() => {
-    console.log('Fetching movies ...');
-    searchTerm ? searchMovies() : fetchMovies();
-  }, [searchMovies, fetchMovies]);
-
-
-  
+  if(data){
+    dispatch(setMoviesAndTotalPages({ movies: data.results, totalPages: data.total_pages }));
+  }
+ 
   const handleFavoriteToggle = (movie) => {
-    const isFavorite = favorites.some(favorite => favorite.id === movie.id);
-    if (isFavorite) {
-      setFavorites(favorites.filter(favorite => favorite.id !== movie.id));
-    } else {
-      setFavorites([...favorites, movie]);
-    }
+    dispatch(toggleFavorite(movie));
   };
 
   const isFavorite = (movie) => favorites.some(favorite => favorite.id === movie.id);
 
   const handleShowFavorites = () => {
-    setShowFavorites(!showFavorites);
-  };
-
-  const handlePagination = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
+    dispatch(setShowFavorites(!showFavorites));
   };
 
   const handleSearch = () => {
-    setSearchTerm(searchInputRef.current.value);
-    setCurrentPage(1);
+    dispatch(setSearchTerm(searchInputRef.current.value));
+    dispatch(setCurrentPage(1));
   };
-  
-  const changeToPopular = () =>{
-    setMovieList("popular");
-    setCurrentPage(1);
-    setSearchTerm('');
-  }
-  const changeToTopRated = () =>{
-    setMovieList("top_rated");
-    setCurrentPage(1);
-    setSearchTerm('');
-  }
-  const changeToUpcoming = () => {
-    setMovieList("upcoming");
-    setCurrentPage(1);
-    setSearchTerm('');
-  }
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
@@ -136,7 +81,9 @@ const MovieApp = () => {
           variant="contained"
           color='warning'
           sx={{ margin: 2 }}
-          onClick={changeToPopular}
+          onClick={() =>{
+            dispatch(changeToPopular());
+          }}
         >
           popular
         </Button>
@@ -144,7 +91,9 @@ const MovieApp = () => {
           variant="contained"
           sx={{ margin: 2 }}
           color='warning'
-          onClick={changeToTopRated}
+          onClick={() =>{
+            dispatch(changeToTopRated());
+          }}
         >
           top rated
         </Button>
@@ -152,7 +101,9 @@ const MovieApp = () => {
           variant="contained"
           sx={{ margin: 2 }}
           color='warning'
-          onClick={changeToUpcoming}
+          onClick={() => {
+            dispatch(changeToUpcoming());
+          }}
         >
           upcoming
         </Button>
@@ -237,7 +188,7 @@ const MovieApp = () => {
       <div>
         <Button
           variant="contained"
-          onClick={() => handlePagination(currentPage - 1)}
+          onClick={() => dispatch(minusPage(currentPage))}
           disabled={currentPage === 1}
         >
           Previous Page
@@ -245,7 +196,7 @@ const MovieApp = () => {
         <span className='paging'>{`Page ${currentPage} of ${totalPages}`}</span>
         <Button
           variant="contained"
-          onClick={() => handlePagination(currentPage + 1)}
+          onClick={() => dispatch(plusPage(currentPage))}
           disabled={currentPage === totalPages}
         >
           Next Page
