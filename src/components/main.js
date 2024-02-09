@@ -15,6 +15,7 @@ import {
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import SearchIcon from '@mui/icons-material/Search';
+import Shimmer from './shimmer';
 import './component.css';
 
 import { toggleFavorite, setShowFavorites, setCurrentPage, setSearchTerm,  changeToPopular, changeToTopRated, changeToUpcoming,setMoviesAndTotalPages, minusPage,plusPage } from './redux/movieSlice';
@@ -27,7 +28,7 @@ const MovieApp = () => {
   const currentPage = useSelector(state => state.movie.currentPage);
   const searchTerm = useSelector(state => state.movie.searchTerm);
   const movieList = useSelector(state => state.movie.movieList);
-  const {  data } = useFetchMoviesQuery({ searchTerm, currentPage,movieList });
+  const {  data,isLoading } = useFetchMoviesQuery({ searchTerm, currentPage,movieList });
   const movies = useSelector(state => state.movie.movies)
   const totalPages = useSelector(state => state.movie.totalPages)
   const searchInputRef = useRef(null);
@@ -35,7 +36,10 @@ const MovieApp = () => {
   if(data){
     dispatch(setMoviesAndTotalPages({ movies: data.results, totalPages: data.total_pages }));
   }
- 
+  if (isLoading) {
+    
+    return <Shimmer width="100%" height="100px" />;
+  }
   const handleFavoriteToggle = (movie) => {
     dispatch(toggleFavorite(movie));
   };
